@@ -1,5 +1,20 @@
 import os
+import requests
 import matplotlib.pyplot as plt
+
+
+def fetch_pubmed_abstract(pmid):
+    url = (
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+        f"?db=pubmed&id={pmid}&retmode=text&rettype=abstract"
+    )
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return ""
+
+    return response.text
 
 
 def read_abstracts(folder):
@@ -66,8 +81,8 @@ def combine_results(all_results):
 
 def save_report(combined_results):
     with open("pcsk9_report.txt", "w") as file:
-        file.write("PCSK9 MULTI-ABSTRACT ANALYSIS REPORT\n")
-        file.write("-------------------------------------\n\n")
+        file.write("PCSK9 PUBMED RESEARCH ASSISTANT REPORT\n")
+        file.write("--------------------------------------\n\n")
 
         for category, entities in combined_results.items():
             file.write(category.replace("_", " ").title() + ":\n")
@@ -96,9 +111,12 @@ def save_entity_plot(combined_results):
             entities.append(entity)
             counts.append(count)
 
+    if not entities:
+        return
+
     plt.figure(figsize=(9, 5))
     plt.bar(entities, counts)
-    plt.title("PCSK9 Multi-Abstract Entity Frequencies")
+    plt.title("PCSK9 PubMed Entity Frequencies")
     plt.xlabel("Entity")
     plt.ylabel("Mentions")
     plt.xticks(rotation=45)
@@ -106,17 +124,34 @@ def save_entity_plot(combined_results):
     plt.savefig("entity_plot.png")
 
 
-abstracts = read_abstracts("abstracts")
+mode = input("Choose mode: local or pubmed: ").strip().lower()
 
 all_results = {}
 
-for filename, abstract_text in abstracts.items():
-    all_results[filename] = count_entities(abstract_text)
+if mode == "pubmed":
+    pmid = input("Enter PubMed PMID: ").strip()
+    abstract_text = fetch_pubmed_abstract(pmid)
+
+    if abstract_text == "":
+        print("Could not fetch abstract.")
+        exit()
+
+    all_results[f"PMID_{pmid}"] = count_entities(abstract_text)
+
+elif mode == "local":
+    abstracts = read_abstracts("abstracts")
+
+    for filename, abstract_text in abstracts.items():
+        all_results[filename] = count_entities(abstract_text)
+
+else:
+    print("Invalid mode. Choose local or pubmed.")
+    exit()
 
 combined_results = combine_results(all_results)
 
-print("PCSK9 MULTI-ABSTRACT RESEARCH ASSISTANT")
-print("---------------------------------------")
+print("\nPCSK9 PUBMED RESEARCH ASSISTANT")
+print("-------------------------------")
 
 for category, entities in combined_results.items():
     print("\n" + category.replace("_", " ").title() + ":")
