@@ -3,24 +3,38 @@ def read_abstract(filename):
         return file.read()
 
 
-def find_entities(text):
+def count_entities(text):
     entity_categories = {
         "genes_proteins": ["pcsk9", "ldlr", "ldl"],
-        "drugs": ["statins", "inhibitors", "antibodies", "evolocumab", "alirocumab", "inclisiran"],
-        "diseases": ["hypercholesterolemia", "cardiovascular disease", "atherosclerosis"]
+        "drugs": [
+            "statins",
+            "inhibitors",
+            "antibodies",
+            "evolocumab",
+            "alirocumab",
+            "inclisiran"
+        ],
+        "diseases": [
+            "hypercholesterolemia",
+            "cardiovascular disease",
+            "atherosclerosis"
+        ]
     }
 
     text = text.lower()
+
     results = {}
 
     for category, entities in entity_categories.items():
-        found = []
+        category_counts = {}
 
         for entity in entities:
-            if entity in text:
-                found.append(entity)
+            count = text.count(entity)
 
-        results[category] = found
+            if count > 0:
+                category_counts[entity] = count
+
+        results[category] = category_counts
 
     return results
 
@@ -33,8 +47,8 @@ def save_report(results):
         for category, entities in results.items():
             file.write(category.replace("_", " ").title() + ":\n")
 
-            for entity in entities:
-                file.write(f"- {entity}\n")
+            for entity, count in entities.items():
+                file.write(f"- {entity} ({count} mentions)\n")
 
             file.write("\n")
 
@@ -44,13 +58,13 @@ def save_csv(results):
         file.write("category,entity,count\n")
 
         for category, entities in results.items():
-            for entity in entities:
-                file.write(f"{category},{entity},1\n")
+            for entity, count in entities.items():
+                file.write(f"{category},{entity},{count}\n")
 
 
 abstract = read_abstract("abstract.txt")
 
-results = find_entities(abstract)
+results = count_entities(abstract)
 
 print("PCSK9 RESEARCH ASSISTANT")
 print("------------------------")
@@ -58,8 +72,8 @@ print("------------------------")
 for category, entities in results.items():
     print("\n" + category.replace("_", " ").title() + ":")
 
-    for entity in entities:
-        print("-", entity)
+    for entity, count in entities.items():
+        print(f"- {entity} ({count} mentions)")
 
 save_report(results)
 save_csv(results)
