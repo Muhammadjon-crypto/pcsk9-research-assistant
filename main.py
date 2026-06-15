@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+
+
 def read_abstract(filename):
     with open(filename, "r") as file:
         return file.read()
@@ -22,7 +25,6 @@ def count_entities(text):
     }
 
     text = text.lower()
-
     results = {}
 
     for category, entities in entity_categories.items():
@@ -62,8 +64,26 @@ def save_csv(results):
                 file.write(f"{category},{entity},{count}\n")
 
 
-abstract = read_abstract("abstract.txt")
+def save_entity_plot(results):
+    entities = []
+    counts = []
 
+    for category_entities in results.values():
+        for entity, count in category_entities.items():
+            entities.append(entity)
+            counts.append(count)
+
+    plt.figure(figsize=(9, 5))
+    plt.bar(entities, counts)
+    plt.title("PCSK9 Research Entity Frequencies")
+    plt.xlabel("Entity")
+    plt.ylabel("Mentions")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("entity_plot.png")
+
+
+abstract = read_abstract("abstract.txt")
 results = count_entities(abstract)
 
 print("PCSK9 RESEARCH ASSISTANT")
@@ -77,6 +97,8 @@ for category, entities in results.items():
 
 save_report(results)
 save_csv(results)
+save_entity_plot(results)
 
 print("\nReport saved to pcsk9_report.txt")
 print("CSV saved to entity_counts.csv")
+print("Plot saved to entity_plot.png")
