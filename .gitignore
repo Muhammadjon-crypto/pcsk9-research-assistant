@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+analysis_report.txt
+entity_counts.csv
+entity_plot.png
+pcsk9_report.txt
