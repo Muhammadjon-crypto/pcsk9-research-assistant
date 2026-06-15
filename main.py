@@ -4,56 +4,65 @@ def read_abstract(filename):
 
 
 def find_entities(text):
-    genes_proteins = ["pcsk9", "ldlr", "ldl"]
-    drugs = ["statins", "inhibitors", "antibodies"]
-    diseases = ["hypercholesterolemia", "cardiovascular disease"]
+    entity_categories = {
+        "genes_proteins": ["pcsk9", "ldlr", "ldl"],
+        "drugs": ["statins", "inhibitors", "antibodies", "evolocumab", "alirocumab", "inclisiran"],
+        "diseases": ["hypercholesterolemia", "cardiovascular disease", "atherosclerosis"]
+    }
 
     text = text.lower()
+    results = {}
 
-    found_genes = [item for item in genes_proteins if item in text]
-    found_drugs = [item for item in drugs if item in text]
-    found_diseases = [item for item in diseases if item in text]
+    for category, entities in entity_categories.items():
+        found = []
 
-    return found_genes, found_drugs, found_diseases
+        for entity in entities:
+            if entity in text:
+                found.append(entity)
+
+        results[category] = found
+
+    return results
 
 
-def save_report(genes, drugs, diseases):
+def save_report(results):
     with open("pcsk9_report.txt", "w") as file:
         file.write("PCSK9 RESEARCH ASSISTANT REPORT\n")
         file.write("--------------------------------\n\n")
 
-        file.write("Genes / Proteins:\n")
-        for item in genes:
-            file.write(f"- {item}\n")
+        for category, entities in results.items():
+            file.write(category.replace("_", " ").title() + ":\n")
 
-        file.write("\nDrugs:\n")
-        for item in drugs:
-            file.write(f"- {item}\n")
+            for entity in entities:
+                file.write(f"- {entity}\n")
 
-        file.write("\nDiseases:\n")
-        for item in diseases:
-            file.write(f"- {item}\n")
+            file.write("\n")
+
+
+def save_csv(results):
+    with open("entity_counts.csv", "w") as file:
+        file.write("category,entity,count\n")
+
+        for category, entities in results.items():
+            for entity in entities:
+                file.write(f"{category},{entity},1\n")
 
 
 abstract = read_abstract("abstract.txt")
 
-genes, drugs, diseases = find_entities(abstract)
+results = find_entities(abstract)
 
 print("PCSK9 RESEARCH ASSISTANT")
 print("------------------------")
 
-print("\nGenes / Proteins:")
-for item in genes:
-    print("-", item)
+for category, entities in results.items():
+    print("\n" + category.replace("_", " ").title() + ":")
 
-print("\nDrugs:")
-for item in drugs:
-    print("-", item)
+    for entity in entities:
+        print("-", entity)
 
-print("\nDiseases:")
-for item in diseases:
-    print("-", item)
-
-save_report(genes, drugs, diseases)
+save_report(results)
+save_csv(results)
 
 print("\nReport saved to pcsk9_report.txt")
+print("CSV saved to entity_counts.csv")
